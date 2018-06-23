@@ -5,9 +5,8 @@ import csv
 import re
 
 class Content:
-    def __init__(self, animes, ratings):
+    def __init__(self, animes):
         self._animes = animes
-        self._ratings = ratings
         self._process()
 
     def _convGenre(self, genre):
@@ -69,8 +68,22 @@ class Content:
     def get_similar(self, anime_id, user=None, size=10):
         df = self._processed.loc[:,[anime_id]]
         df.sort_values(by=anime_id, ascending=False, inplace=True)
-        return(self._processed.columns[df.index[:size]])
+        result = self._processed.columns[df.index[1:size+1]]
+        if user is not None:
+            aux = user.loc[:,(user==0).all()]
+            result = self._processed.columns[df.index]
+            result = result[result.isin(aux.columns)]
+            if result[0] != anime_id:
+                return(result[:size])
+            else:
+                return(result[1:size+1])
+        return(self._processed.columns[df.index[1:size+1]])
 
 # EXEMPLO DE ANIMES SIMILARES PARA DEATH_NOTE
+# [1, 4037, 1022, 1226, 1293, 1490, 1184, 34502, 28145, 30016]
 # animes = pd.read_csv('data/animes.csv')
-# print(Content(animes, None).get_similar(1535))  
+# cols = animes['anime_id']
+# user = pd.DataFrame([np.zeros(cols.shape[0], dtype=np.int32)], columns=cols)
+# user.loc[[0], [4037]] = 1
+# user.loc[[0], [1]] = 1
+# print(Content(animes, None).get_similar(1, user))
