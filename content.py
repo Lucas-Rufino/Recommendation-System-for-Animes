@@ -1,4 +1,5 @@
 from sklearn.metrics.pairwise import cosine_similarity
+import random as rnd
 import pandas as pd
 import numpy as np
 import csv
@@ -65,7 +66,7 @@ class Content:
         df = pd.DataFrame(cosine_similarity(processed), columns=labels)
         self._processed = df
     
-    def get_similar(self, anime_id, user=None, size=10):
+    def get_similar_by_anime(self, anime_id, user=None, size=10):
         df = self._processed.loc[:,[anime_id]]
         df.sort_values(by=anime_id, ascending=False, inplace=True)
         result = self._processed.columns[df.index[1:size+1]]
@@ -78,12 +79,19 @@ class Content:
             else:
                 return(result[1:size+1])
         return(self._processed.columns[df.index[1:size+1]])
-
-# EXEMPLO DE ANIMES SIMILARES PARA DEATH_NOTE
-# [1, 4037, 1022, 1226, 1293, 1490, 1184, 34502, 28145, 30016]
-# animes = pd.read_csv('data/animes.csv')
-# cols = animes['anime_id']
-# user = pd.DataFrame([np.zeros(cols.shape[0], dtype=np.int32)], columns=cols)
-# user.loc[[0], [4037]] = 1
-# user.loc[[0], [1]] = 1
-# print(Content(animes, None).get_similar(1, user))
+    
+    def get_similar_by_user(self, user, size=10):
+        animes = []
+        aux = user.sort_values(by=[0], axis=1, ascending=False)
+        for anime_id in aux.columns[:size]:
+            animes.append(self.get_similar_by_anime(anime_id, user)[0])
+        return animes
+    
+    def get_similar_by_most_ratings(self, user, size=10):
+        aux = user.sort_values(by=[0], axis=1, ascending=False)
+        for i in range(0, 11)[::-1]:
+            df = aux.loc[:,(aux>=i).all()]
+            if not df.empty:
+                choosed = df.columns[rnd.randrange(df.shape[1])]
+                return choosed, self.get_similar_by_anime(choosed, user)
+        return -1, pd.DataFrame()
