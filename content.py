@@ -49,7 +49,7 @@ class Content:
                 '\]', '\^', '\~']) + ']'
             
             processed = []
-            for i, d in self._animes.iterrows():
+            for _, d in self._animes.iterrows():
                 ws = self._convName(d['name'], chars)
                 gs = self._convGenre(d['genre'])
                 ts = d['type']
@@ -69,7 +69,6 @@ class Content:
     def get_similar_by_anime(self, anime_id, user=None, size=10):
         df = self._processed.loc[:,[anime_id]]
         df.sort_values(by=anime_id, ascending=False, inplace=True)
-        result = self._processed.columns[df.index[1:size+1]]
         if user is not None:
             aux = user.loc[:,(user==0).all()]
             result = self._processed.columns[df.index]
@@ -85,13 +84,29 @@ class Content:
         aux = user.sort_values(by=[0], axis=1, ascending=False)
         for anime_id in aux.columns[:size]:
             animes.append(self.get_similar_by_anime(anime_id, user)[0])
-        return animes
+        return np.array(animes)
     
     def get_similar_by_most_ratings(self, user, size=10):
         aux = user.sort_values(by=[0], axis=1, ascending=False)
-        for i in range(0, 11)[::-1]:
+        for i in range(-5, 6)[::-1]:
             df = aux.loc[:,(aux>=i).all()]
             if not df.empty:
                 choosed = df.columns[rnd.randrange(df.shape[1])]
                 return choosed, self.get_similar_by_anime(choosed, user)
         return -1, pd.DataFrame()
+
+# EXEMPLO DE ANIMES SIMILARES PARA DEATH_NOTE
+# [1, 4037, 1022, 1226, 1293, 1490, 1184, 34502, 28145, 30016]
+# animes = pd.read_csv('data/animes.csv')
+# cols = animes['anime_id']
+# user = pd.DataFrame([np.zeros(cols.shape[0], dtype=np.int32)], columns=cols)
+# user.loc[[0], [1]] = 9
+# user.loc[[0], [1535]] = 9
+# aux = user.sort_values(by=[0], axis=1, ascending=False)
+# for i in range(0, 11)[::-1]:
+#     df = aux.loc[:,(aux>=i).all()]
+#     if not df.empty:
+#         choosed = df.columns[rnd.randrange(df.shape[1])]
+#         print(choosed)
+#         break
+# print(Content(animes).get_similar_by_most_ratings(user))
