@@ -14,7 +14,7 @@ class Collaborative:
         aux = pd.DataFrame([zeros], columns=self._ratings.columns)
         aux.loc[[0],:] = user.loc[[0], aux.columns].values
         cols = user.loc[:,(user==0).all()].columns                  # melhoram
-        if cols.shape == aux.shape:                                 # em tempo,
+        if cols.shape == user.shape:                                # em tempo,
             aux = aux.loc[:,~aux.columns.isin(cols)]                # mas muda
             ratings = self._ratings.loc[:,~aux.columns.isin(cols)]  # o resposta
         else:                                                       # do filtro
