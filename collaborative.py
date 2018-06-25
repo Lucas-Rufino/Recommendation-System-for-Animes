@@ -13,10 +13,12 @@ class Collaborative:
         zeros = np.zeros(len(self._ratings.columns))
         aux = pd.DataFrame([zeros], columns=self._ratings.columns)
         aux.loc[[0],:] = user.loc[[0], aux.columns].values
-        cols = user.loc[:,(user==0).all()].columns              # melhoram em
-        aux = aux.loc[:,~aux.columns.isin(cols)]                # tempo, mas
-        ratings = self._ratings.loc[:,~aux.columns.isin(cols)]  # modificam um 
-        #ratings = self._ratings                                # o resultado
+        cols = user.loc[:,(user==0).all()].columns                  # melhoram
+        if cols.shape == aux.shape:                                 # em tempo,
+            aux = aux.loc[:,~aux.columns.isin(cols)]                # mas muda
+            ratings = self._ratings.loc[:,~aux.columns.isin(cols)]  # o resposta
+        else:                                                       # do filtro
+            ratings = self._ratings                         
         cs = cosine_similarity(aux, ratings)
         self._users = pd.DataFrame(cs, columns=ratings.index)
         self._users.sort_values(by=0, axis=1, ascending=False, inplace=True)
@@ -46,3 +48,6 @@ class Collaborative:
             aux = user.loc[:,(user==0).all()]
             return ratings.columns[ratings.columns.isin(aux.columns)][:size]
         return ratings.index[:size]
+
+cll = Collaborative(database.animes, database.ratings)
+cll.process(database.user)
